@@ -1,0 +1,9 @@
+click>=8.1
+duckdb>=0.10
+feedparser>=6.0
+PyYAML>=6.0
+python-dotenv>=1.0
+requests>=2.31
+openai>=1.0
+openai-whisper>=202311
+pytest>=7.0

@@ -1,0 +1,51 @@
+from pathlib import Path
+
+from src.clients.audio_downloader import download_and_normalize
+from src.clients.llm_client import build_llm_client
+from src.clients.rss_client import fetch_new_episodes
+from src.clients.transcriber import clean_transcript, transcribe_audio
+from src.storage import db, paths
+from src.utils.config import load_yaml
+from src.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+
+def run(config_dir: Path) -> None:
+    paths.ensure_dirs()
+    conn = db.get_conn()
+    db.init_db(conn)
+
+    podcast_cfg = load_yaml(config_dir / "podcasts.yaml").get("podcasts", [])
+    model_cfg = load_yaml(config_dir / "models.yaml")
+
+    db.upsert_podcasts_from_config(conn, podcast_cfg)
+
+    llm_cfg = model_cfg.get("llm", {})
+    cleanup_enabled = llm_cfg.get("cleanup", False)
+    llm_client = None
+    if cleanup_enabled:
+        llm_client = build_llm_client(llm_cfg)
+
+    for podcast in podcast_cfg:
+        logger.info("Checking feed %s", podcast.get("name"))
+        new_episodes = fetch_new_episodes(podcast, conn)
+        logger.info("Found %s new episodes", len(new_episodes))
+
+        for episode in new_episodes:
+            try:
+                download_and_normalize(episode, conn)
+                transcribe_audio(episode, model_cfg.get("transcription", {}), conn)
+                if cleanup_enabled and llm_client:
+                    clean_transcript(
+                        episode,
+                        llm_client,
+                        paths.PROJECT_ROOT / "src" / "prompts" / "clean_transcript.md",
+                        conn,
+                    )
+            except Exception as exc:
+                logger.exception(
+                    "Failed processing episode %s: %s", episode.get("id"), exc
+                )
+
+    conn.close()

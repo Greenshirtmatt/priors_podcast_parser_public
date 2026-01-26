@@ -1,0 +1,61 @@
+# Podcast Parser
+
+Local, terminal-first pipeline to fetch podcast episodes, transcribe audio, and
+produce a daily summary report.
+
+## Prereqs
+
+- macOS
+- Python 3.11 recommended (3.9+ should work)
+- Homebrew
+- ffmpeg (installed via preflight)
+
+## Setup
+
+Create a virtual environment and install dependencies:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Or run the preflight script which creates the venv, installs dependencies,
+and installs or upgrades ffmpeg:
+
+```bash
+bash scripts/preflight.sh
+```
+
+## Configuration
+
+- `.env` (copy from `.env.example`)
+- `config/podcasts.yaml` for RSS feeds
+- `config/models.yaml` for transcription and LLM settings
+
+## Run
+
+Fetch, download, transcribe, and optionally clean transcripts:
+
+```bash
+python -m src.main fetch-and-transcribe
+```
+
+Generate a daily summary by **publication date** (YYYY-MM-DD):
+
+```bash
+python -m src.main summarize --date 2026-01-26
+```
+
+If `--date` is omitted, the pipeline uses today’s date in Hawaii–Aleutian
+Standard Time (Pacific/Honolulu, UTC-10, no DST), unless `TIMEZONE` is set.
+Publication dates are stored in UTC, and summaries convert the requested HST
+date to a UTC range when querying.
+
+## Output
+
+- `data/audio/` normalized audio
+- `data/transcripts/` raw and cleaned transcripts
+- `data/reports/` daily summaries
+- `data/db/podcasts.duckdb`

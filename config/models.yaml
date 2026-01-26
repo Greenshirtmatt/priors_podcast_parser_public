@@ -1,0 +1,10 @@
+transcription:
+  engine: "whisper"
+  model_name: "base"
+  language: "en"
+
+llm:
+  provider: "openai"
+  model: "gpt-5-mini"
+  cleanup: true
+  max_output_tokens: 2048

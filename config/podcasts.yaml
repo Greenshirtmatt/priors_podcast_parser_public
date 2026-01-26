@@ -1,0 +1,4 @@
+podcasts:
+  - id: fsmi
+    name: "FSMI Feed"
+    rss_url: "https://feeds.megaphone.fm/FSMI7575968096"
