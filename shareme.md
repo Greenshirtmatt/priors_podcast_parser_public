@@ -9,8 +9,8 @@ Build a local, terminal-first podcast pipeline that:
 3) Transcribes with Whisper CLI.
 4) Optionally cleans transcripts with OpenAI.
 5) Stores metadata and paths in DuckDB.
-6) Generates daily summaries by publication date (HST day, queried via UTC range).
-7) Outputs a single daily Markdown report.
+6) Generates summaries by publication date (HST day, queried via UTC range).
+7) Outputs one Markdown report per episode, serialized to avoid token truncation.
 
 Design should remain modular for future blog or email outputs.
 
@@ -33,10 +33,12 @@ Design should remain modular for future blog or email outputs.
 - Episode filtering: decide whether to run all new episodes or specify a list of GUIDs or URLs.
 - LLM model: confirm the OpenAI model name to use.
 - Date policy: confirm storing pub dates in UTC and summarizing by HST day.
+- Fetch scope: set a global start_date (HST) or use episode filters.
 
 **Steps to take**
 - Create `.env` with `LLM_API_KEY` (and optional `OPENAI_MODEL`, `TIMEZONE`).
 - Populate `config/podcasts.yaml` with the chosen feed(s).
+- Set `start_date` in `config/podcasts.yaml` (HST) to prevent full back-catalog runs.
 - (Optional) Run fetch with `--episode-id` or `--episode-url` to target specific episodes.
 
 ---
@@ -91,6 +93,7 @@ TIMEZONE=Pacific/Honolulu  # optional override
 
 **config/podcasts.yaml**
 ```
+start_date: "2026-01-26"
 podcasts:
   - id: fsmi
     name: "FSMI Feed"
@@ -133,9 +136,9 @@ for the HST day using half-open bounds `[start, next_day)`.
 
 **Daily summary** (`python -m src.main summarize --date YYYY-MM-DD`)
 1) Find unsummarized episodes whose `pub_date` falls in HST day.
-2) Build prompt with transcripts (cleaned preferred).
-3) Save output to `data/reports/{date}.md`.
-4) Mark episodes summarized in DB.
+2) Build prompt with one transcript at a time (cleaned preferred).
+3) Save output to `data/reports/{date}__{podcast_id}__{safe_title}.md`.
+4) Mark each episode summarized in DB.
 
 ---
 
