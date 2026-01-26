@@ -64,6 +64,14 @@ Generate a daily summary by **publication date** (YYYY-MM-DD):
 python -m src.main summarize --date 2026-01-26
 ```
 
+Summarize specific transcript files directly (repeatable):
+
+```bash
+python -m src.main summarize \
+  --transcript-path data/transcripts/clean/fsmi/20c61048-f560-11f0-84f5-6f1bb3eae5e5.txt \
+  --transcript-path data/transcripts/clean/fsmi/fca3a480-eda5-11f0-a112-bf33c8952bcc.txt
+```
+
 If `--date` is omitted, the pipeline uses today’s date in Hawaii–Aleutian
 Standard Time (Pacific/Honolulu, UTC-10, no DST), unless `TIMEZONE` is set.
 Publication dates are stored in UTC, and summaries convert the requested HST

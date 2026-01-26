@@ -4,7 +4,7 @@ from src.clients.llm_client import build_llm_client
 from src.storage import db, paths
 from src.utils.config import load_yaml
 from src.utils.logging import get_logger
-from typing import Optional
+from typing import Iterable, Optional
 
 from src.utils.time import hst_day_bounds_to_utc, parse_date_arg
 
@@ -22,7 +22,32 @@ def _load_transcript(episode: dict) -> Optional[str]:
     return None
 
 
-def run(config_dir: Path, date_str: Optional[str] = None) -> None:
+def _load_transcripts_from_paths(paths_list: Iterable[str]) -> list[dict]:
+    episodes = []
+    for path_str in paths_list:
+        path = Path(path_str)
+        if not path.exists():
+            logger.warning("Transcript path missing: %s", path)
+            continue
+        episodes.append(
+            {
+                "id": path.stem,
+                "title": path.stem,
+                "podcast_name": "Manual Selection",
+                "podcast_id": "manual",
+                "pub_date": None,
+                "transcript_text": path.read_text(encoding="utf-8"),
+                "transcript_path": str(path),
+            }
+        )
+    return episodes
+
+
+def run(
+    config_dir: Path,
+    date_str: Optional[str] = None,
+    transcript_paths: Optional[list[str]] = None,
+) -> None:
     report_date = parse_date_arg(date_str)
     report_date_str = report_date.isoformat()
     start_utc, end_utc = hst_day_bounds_to_utc(report_date)
@@ -34,13 +59,22 @@ def run(config_dir: Path, date_str: Optional[str] = None) -> None:
     llm_cfg = model_cfg.get("llm", {})
     llm_client = build_llm_client(llm_cfg)
 
-    episodes = db.get_unsummarized_episodes_for_pub_date_range(
-        conn, start_utc, end_utc
-    )
-    if not episodes:
-        logger.info("No episodes to summarize for %s", report_date_str)
-        conn.close()
-        return
+    episodes = []
+    manual_mode = bool(transcript_paths)
+    if manual_mode:
+        episodes = _load_transcripts_from_paths(transcript_paths or [])
+        if not episodes:
+            logger.info("No transcripts found for manual summarization.")
+            conn.close()
+            return
+    else:
+        episodes = db.get_unsummarized_episodes_for_pub_date_range(
+            conn, start_utc, end_utc
+        )
+        if not episodes:
+            logger.info("No episodes to summarize for %s", report_date_str)
+            conn.close()
+            return
 
     prompt_template = (
         paths.PROJECT_ROOT / "src" / "prompts" / "daily_summarizer.md"
@@ -50,7 +84,7 @@ def run(config_dir: Path, date_str: Optional[str] = None) -> None:
     episode_blocks = []
     summarized_ids = []
     for episode in episodes:
-        transcript_text = _load_transcript(episode)
+        transcript_text = episode.get("transcript_text") or _load_transcript(episode)
         if not transcript_text:
             logger.warning("Missing transcript for %s", episode.get("id"))
             continue
@@ -81,9 +115,10 @@ def run(config_dir: Path, date_str: Optional[str] = None) -> None:
     report_path = paths.daily_report_path(report_date_str)
     report_path.write_text(response, encoding="utf-8")
 
-    summary_id = report_date_str
-    db.insert_daily_summary(conn, summary_id, report_date_str, str(report_path))
-    db.mark_episodes_as_summarized(conn, summarized_ids, summary_id)
+    if not manual_mode:
+        summary_id = report_date_str
+        db.insert_daily_summary(conn, summary_id, report_date_str, str(report_path))
+        db.mark_episodes_as_summarized(conn, summarized_ids, summary_id)
 
     logger.info("Summary written to %s", report_path)
     conn.close()

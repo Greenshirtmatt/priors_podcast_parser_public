@@ -42,10 +42,19 @@ def fetch_and_transcribe(
 
 @cli.command()
 @click.option("--date", type=str, help="YYYY-MM-DD, defaults to today")
-def summarize(date: Optional[str]) -> None:
+@click.option(
+    "--transcript-path",
+    multiple=True,
+    help="Transcript file path(s) to summarize, may be passed multiple times.",
+)
+def summarize(date: Optional[str], transcript_path: tuple[str, ...]) -> None:
     """Generate daily summary for episodes by publication date."""
     config_dir = paths.PROJECT_ROOT / "config"
-    summarize_run(config_dir=config_dir, date_str=date)
+    summarize_run(
+        config_dir=config_dir,
+        date_str=date,
+        transcript_paths=list(transcript_path),
+    )
 
 
 if __name__ == "__main__":
