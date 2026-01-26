@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 from src.clients.audio_downloader import download_and_normalize
 from src.clients.llm_client import build_llm_client
@@ -11,7 +12,11 @@ from src.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def run(config_dir: Path) -> None:
+def run(
+    config_dir: Path,
+    episode_ids: Optional[list[str]] = None,
+    episode_urls: Optional[list[str]] = None,
+) -> None:
     paths.ensure_dirs()
     conn = db.get_conn()
     db.init_db(conn)
@@ -27,9 +32,17 @@ def run(config_dir: Path) -> None:
     if cleanup_enabled:
         llm_client = build_llm_client(llm_cfg)
 
+    episode_id_set = set(episode_ids or [])
+    episode_url_set = set(episode_urls or [])
+
     for podcast in podcast_cfg:
         logger.info("Checking feed %s", podcast.get("name"))
-        new_episodes = fetch_new_episodes(podcast, conn)
+        new_episodes = fetch_new_episodes(
+            podcast,
+            conn,
+            episode_ids=episode_id_set,
+            episode_urls=episode_url_set,
+        )
         logger.info("Found %s new episodes", len(new_episodes))
 
         for episode in new_episodes:

@@ -42,6 +42,22 @@ Fetch, download, transcribe, and optionally clean transcripts:
 python -m src.main fetch-and-transcribe
 ```
 
+Fetch only specific episodes by GUID (repeatable):
+
+```bash
+python -m src.main fetch-and-transcribe \
+  --episode-id 20c61048-f560-11f0-84f5-6f1bb3eae5e5 \
+  --episode-id fca3a480-eda5-11f0-a112-bf33c8952bcc
+```
+
+Fetch only specific episodes by URL (repeatable):
+
+```bash
+python -m src.main fetch-and-transcribe \
+  --episode-url https://fs.blog/knowledge-project-podcast/morgan-housel-3/ \
+  --episode-url https://fs.blog/knowledge-project-podcast/outliers-peter-d-kaufman/
+```
+
 Generate a daily summary by **publication date** (YYYY-MM-DD):
 
 ```bash

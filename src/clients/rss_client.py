@@ -37,7 +37,7 @@ def _extract_audio_url(entry: dict[str, Any]) -> Optional[str]:
 def _stable_episode_id(podcast_id: str, entry: dict[str, Any]) -> str:
     guid = entry.get("guid") or entry.get("id")
     if guid:
-        return guid
+        return str(guid).strip()
 
     fallback_parts = [
         podcast_id,
@@ -49,14 +49,33 @@ def _stable_episode_id(podcast_id: str, entry: dict[str, Any]) -> str:
     return digest
 
 
+def _matches_episode_url(entry: dict[str, Any], episode_urls: set[str]) -> bool:
+    link = entry.get("link")
+    if link and link in episode_urls:
+        return True
+    enclosures = entry.get("enclosures") or []
+    for enclosure in enclosures:
+        href = enclosure.get("href")
+        if href and href in episode_urls:
+            return True
+    return False
+
+
 def fetch_new_episodes(
-    podcast_config: dict[str, Any], conn
+    podcast_config: dict[str, Any],
+    conn,
+    episode_ids: Optional[set[str]] = None,
+    episode_urls: Optional[set[str]] = None,
 ) -> list[dict[str, Any]]:
     feed = feedparser.parse(podcast_config["rss_url"])
     new_episodes: list[dict[str, Any]] = []
 
     for entry in feed.entries:
         episode_id = _stable_episode_id(podcast_config["id"], entry)
+        if episode_ids and episode_id not in episode_ids:
+            continue
+        if episode_urls and not _matches_episode_url(entry, episode_urls):
+            continue
         if db.episode_exists(conn, episode_id):
             continue
 

@@ -16,10 +16,28 @@ def cli() -> None:
 
 @cli.command("fetch-and-transcribe")
 @click.option("--date", type=str, help="YYYY-MM-DD (reserved for future use)")
-def fetch_and_transcribe(date: Optional[str]) -> None:
+@click.option(
+    "--episode-id",
+    multiple=True,
+    help="Episode GUID(s) to fetch, may be passed multiple times.",
+)
+@click.option(
+    "--episode-url",
+    multiple=True,
+    help="Episode URL(s) to fetch, may be passed multiple times.",
+)
+def fetch_and_transcribe(
+    date: Optional[str],
+    episode_id: tuple[str, ...],
+    episode_url: tuple[str, ...],
+) -> None:
     """Fetch new episodes, download, normalize, transcribe, clean."""
     config_dir = paths.PROJECT_ROOT / "config"
-    fetch_run(config_dir=config_dir)
+    fetch_run(
+        config_dir=config_dir,
+        episode_ids=list(episode_id),
+        episode_urls=list(episode_url),
+    )
 
 
 @cli.command()
