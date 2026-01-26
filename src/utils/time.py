@@ -24,6 +24,10 @@ def parse_date_arg(date_str: Optional[str]) -> date:
     return datetime.strptime(date_str, "%Y-%m-%d").date()
 
 
+def parse_hst_date(date_str: str) -> date:
+    return datetime.strptime(date_str, "%Y-%m-%d").date()
+
+
 def normalize_to_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=HST_TZ)

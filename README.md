@@ -42,6 +42,10 @@ Fetch, download, transcribe, and optionally clean transcripts:
 python -m src.main fetch-and-transcribe
 ```
 
+By default, fetch-and-transcribe refuses to process an entire back catalog. Set
+`start_date` in `config/podcasts.yaml` (HST) or pass `--episode-id` or
+`--episode-url` to define scope.
+
 Fetch only specific episodes by GUID (repeatable):
 
 ```bash

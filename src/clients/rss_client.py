@@ -66,6 +66,7 @@ def fetch_new_episodes(
     conn,
     episode_ids: Optional[set[str]] = None,
     episode_urls: Optional[set[str]] = None,
+    start_date: Optional[datetime] = None,
 ) -> list[dict[str, Any]]:
     feed = feedparser.parse(podcast_config["rss_url"])
     new_episodes: list[dict[str, Any]] = []
@@ -76,6 +77,11 @@ def fetch_new_episodes(
             continue
         if episode_urls and not _matches_episode_url(entry, episode_urls):
             continue
+
+        pub_date = _parse_pub_date(entry)
+        if start_date and pub_date and pub_date < start_date:
+            continue
+
         if db.episode_exists(conn, episode_id):
             continue
 
@@ -83,7 +89,7 @@ def fetch_new_episodes(
             "id": episode_id,
             "podcast_id": podcast_config["id"],
             "title": entry.get("title"),
-            "pub_date": _parse_pub_date(entry),
+            "pub_date": pub_date,
             "audio_url": _extract_audio_url(entry),
         }
         if not episode["audio_url"]:
