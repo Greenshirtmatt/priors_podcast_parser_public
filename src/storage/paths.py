@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from src.utils.strings import slugify
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
 AUDIO_DIR = DATA_DIR / "audio"
@@ -33,6 +35,15 @@ def transcript_clean_path(podcast_id: str, episode_id: str) -> Path:
 
 def daily_report_path(report_date: str) -> Path:
     path = REPORTS_DIR / f"{report_date}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def report_path_for_episode(report_date: str, podcast_id: str, title: str) -> Path:
+    safe_title = slugify(title)
+    safe_podcast = slugify(podcast_id)
+    filename = f"{report_date}__{safe_podcast}__{safe_title}.md"
+    path = REPORTS_DIR / filename
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
 

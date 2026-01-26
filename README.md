@@ -58,7 +58,8 @@ python -m src.main fetch-and-transcribe \
   --episode-url https://fs.blog/knowledge-project-podcast/outliers-peter-d-kaufman/
 ```
 
-Generate a daily summary by **publication date** (YYYY-MM-DD):
+Generate summaries by **publication date** (YYYY-MM-DD). Each episode is
+summarized separately and written to its own report file:
 
 ```bash
 python -m src.main summarize --date 2026-01-26
@@ -76,6 +77,8 @@ If `--date` is omitted, the pipeline uses today’s date in Hawaii–Aleutian
 Standard Time (Pacific/Honolulu, UTC-10, no DST), unless `TIMEZONE` is set.
 Publication dates are stored in UTC, and summaries convert the requested HST
 date to a UTC range when querying.
+Report filenames follow:
+`data/reports/{date}__{podcast_id}__{safe_title}.md`
 
 ## Output
 
