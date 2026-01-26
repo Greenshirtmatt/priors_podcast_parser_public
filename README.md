@@ -1,7 +1,7 @@
 # Podcast Parser
 
 Local, terminal-first pipeline to fetch podcast episodes, transcribe audio, and
-produce a daily summary report.
+produce per-episode summary reports.
 
 ## Prereqs
 
@@ -88,5 +88,5 @@ Report filenames follow:
 
 - `data/audio/` normalized audio
 - `data/transcripts/` raw and cleaned transcripts
-- `data/reports/` daily summaries
+- `data/reports/` per-episode summaries
 - `data/db/podcasts.duckdb`
