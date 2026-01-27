@@ -79,8 +79,9 @@ def fetch_new_episodes(
             continue
 
         pub_date = _parse_pub_date(entry)
-        if start_date and pub_date and pub_date < start_date:
-            continue
+        if start_date and not episode_ids and not episode_urls:
+            if pub_date and pub_date < start_date:
+                continue
 
         if db.episode_exists(conn, episode_id):
             continue

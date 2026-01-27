@@ -38,7 +38,7 @@ def run(
     episode_id_set = set(episode_ids or [])
     episode_url_set = set(episode_urls or [])
     start_utc = None
-    if start_date:
+    if start_date and not episode_id_set and not episode_url_set:
         start_utc, _ = hst_day_bounds_to_utc(parse_hst_date(start_date))
 
     if not episode_id_set and not episode_url_set and not start_utc:
