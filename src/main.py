@@ -3,9 +3,11 @@ from typing import Optional
 import click
 from dotenv import load_dotenv
 
+from src.clients.episode_search import search_feeds
 from src.pipelines.daily_summarize import run as summarize_run
 from src.pipelines.fetch_and_transcribe import run as fetch_run
 from src.storage import paths
+from src.utils.config import load_yaml
 
 
 @click.group()
@@ -55,6 +57,40 @@ def summarize(date: Optional[str], transcript_path: tuple[str, ...]) -> None:
         date_str=date,
         transcript_paths=list(transcript_path),
     )
+
+
+@cli.command("list-episodes")
+@click.option(
+    "--query",
+    required=True,
+    help="Search term for episode title, link, or GUID.",
+)
+@click.option(
+    "--podcast-id",
+    type=str,
+    help="Restrict search to a single podcast id.",
+)
+def list_episodes(query: str, podcast_id: Optional[str]) -> None:
+    """List matching episodes from configured RSS feeds."""
+    config_dir = paths.PROJECT_ROOT / "config"
+    config = load_yaml(config_dir / "podcasts.yaml")
+    feeds = config.get("podcasts", [])
+    if podcast_id:
+        feeds = [feed for feed in feeds if feed.get("id") == podcast_id]
+    results = search_feeds(feeds, query)
+    if not results:
+        click.echo("No matches found.")
+        return
+
+    for match in results:
+        click.echo(f"- {match.title}")
+        click.echo(f"  podcast_id: {match.podcast_id}")
+        if match.pub_date:
+            click.echo(f"  pub_date: {match.pub_date}")
+        if match.guid:
+            click.echo(f"  guid: {match.guid}")
+        if match.link:
+            click.echo(f"  link: {match.link}")
 
 
 if __name__ == "__main__":

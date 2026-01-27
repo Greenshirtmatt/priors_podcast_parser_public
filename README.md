@@ -54,6 +54,12 @@ python -m src.main fetch-and-transcribe \
   --episode-id fca3a480-eda5-11f0-a112-bf33c8952bcc
 ```
 
+Search feeds for an episode by keyword (title, link, or GUID):
+
+```bash
+python -m src.main list-episodes --query "mauboussin" --podcast-id fsmi
+```
+
 Fetch only specific episodes by URL (repeatable):
 
 ```bash
