@@ -9,3 +9,6 @@ podcasts:
   - id: lennys_podcast_s198869
     name: "Lenny's Podcast (s/198869)"
     rss_url: "https://api.substack.com/feed/podcast/10845/s/198869.rss"
+  - id: libsyn_121729
+    name: "Libsyn 121729"
+    rss_url: "https://rss.libsyn.com/shows/121729/destinations/713489.xml"
