@@ -62,6 +62,8 @@ def run(
 
         for episode in new_episodes:
             try:
+                if model_cfg.get("transcription", {}).get("language"):
+                    episode["language"] = model_cfg["transcription"]["language"]
                 download_and_normalize(episode, conn)
                 transcribe_audio(episode, model_cfg.get("transcription", {}), conn)
                 if cleanup_enabled and llm_client:

@@ -28,7 +28,7 @@ def transcript_raw_path(podcast_id: str, episode_id: str) -> Path:
 
 
 def transcript_clean_path(podcast_id: str, episode_id: str) -> Path:
-    path = TRANSCRIPTS_DIR / "clean" / podcast_id / f"{episode_id}.txt"
+    path = TRANSCRIPTS_DIR / "clean" / podcast_id / f"{episode_id}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
 

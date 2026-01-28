@@ -5,6 +5,7 @@ from typing import Optional
 
 from src.storage import db, paths
 from src.utils.logging import get_logger
+from src.utils.markdown import build_transcript_markdown
 
 logger = get_logger(__name__)
 
@@ -65,7 +66,18 @@ def clean_transcript(
     cleaned_text = llm_client.complete(full_prompt)
 
     clean_path = paths.transcript_clean_path(episode["podcast_id"], episode["id"])
-    clean_path.write_text(cleaned_text, encoding="utf-8")
+    markdown_text = build_transcript_markdown(
+        title=episode.get("title") or episode["id"],
+        publisher=episode.get("podcast_name") or episode.get("podcast_id"),
+        date=episode.get("pub_date"),
+        url=episode.get("url"),
+        language=episode.get("language") or "en",
+        podcast_id=episode.get("podcast_id"),
+        episode_id=episode.get("id"),
+        audio_url=episode.get("audio_url"),
+        transcript_text=cleaned_text,
+    )
+    clean_path.write_text(markdown_text, encoding="utf-8")
 
     db.update_episode_transcript_clean(conn, episode["id"], str(clean_path))
     logger.info("Transcript cleaned for %s", episode.get("title") or episode["id"])

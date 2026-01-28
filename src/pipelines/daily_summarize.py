@@ -5,6 +5,7 @@ from src.clients.llm_client import build_llm_client
 from src.storage import db, paths
 from src.utils.config import load_yaml
 from src.utils.logging import get_logger
+from src.utils.markdown import strip_front_matter
 from src.utils.time import hst_day_bounds_to_utc, parse_date_arg
 
 logger = get_logger(__name__)
@@ -15,9 +16,11 @@ def _load_transcript(episode: dict) -> Optional[str]:
     raw_path = episode.get("transcript_raw_path")
 
     if clean_path and Path(clean_path).exists():
-        return Path(clean_path).read_text(encoding="utf-8")
+        text = Path(clean_path).read_text(encoding="utf-8")
+        return strip_front_matter(text)
     if raw_path and Path(raw_path).exists():
-        return Path(raw_path).read_text(encoding="utf-8")
+        text = Path(raw_path).read_text(encoding="utf-8")
+        return strip_front_matter(text)
     return None
 
 
@@ -35,7 +38,7 @@ def _load_transcripts_from_paths(paths_list: Iterable[str]) -> list[dict]:
                 "podcast_name": "Manual Selection",
                 "podcast_id": "manual",
                 "pub_date": None,
-                "transcript_text": path.read_text(encoding="utf-8"),
+                "transcript_text": strip_front_matter(path.read_text(encoding="utf-8")),
                 "transcript_path": str(path),
             }
         )

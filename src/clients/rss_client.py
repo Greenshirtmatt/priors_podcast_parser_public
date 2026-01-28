@@ -89,8 +89,10 @@ def fetch_new_episodes(
         episode = {
             "id": episode_id,
             "podcast_id": podcast_config["id"],
+            "podcast_name": podcast_config.get("name"),
             "title": entry.get("title"),
             "pub_date": pub_date,
+            "url": entry.get("link"),
             "audio_url": _extract_audio_url(entry),
         }
         if not episode["audio_url"]:
